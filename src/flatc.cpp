@@ -965,6 +965,12 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
         }
       } else {
         flatbuffers::EnsureDirExists(options.output_path);
+        if (!options.output_path.empty() &&
+            !flatbuffers::DirExists(options.output_path.c_str())) {
+          Error("Unable to create output directory: " + options.output_path,
+                false, true);
+          return nullptr;
+        }
 
         // Prefer bfbs generators if present.
         if (code_generator->SupportsBfbsGeneration()) {
@@ -1079,6 +1085,7 @@ int FlatCompiler::Compile(const FlatCOptions& options) {
   }
 
   std::unique_ptr<Parser> parser = GenerateCode(options, conform_parser);
+  if (parser == nullptr) return -1;
 
   for (const auto& code_generator : options.generators) {
     if (code_generator->SupportsRootFileGeneration()) {
